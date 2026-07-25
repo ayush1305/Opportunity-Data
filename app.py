@@ -68,34 +68,44 @@ def inject_custom_css():
         
         /* Stylized Sidebar Radio Buttons */
         div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] {{
-            gap: 10px;
+            gap: 12px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
         }}
         
         div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label {{
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 10px 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 4px 0px !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
             cursor: pointer;
-            width: 100%;
+            width: auto !important;
+            display: block !important;
         }}
         
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label:hover {{
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
+        /* Unselected tab text styling */
+        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label p {{
+            font-size: 1.15rem !important;
+            font-weight: 500 !important;
+            color: rgba(255, 255, 255, 0.65) !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            margin: 0 !important;
         }}
         
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label[data-checked="true"] {{
-            background-color: white !important;
-            color: {PRIMARY_COLOR} !important;
-            font-weight: 700 !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }}
-        
+        /* Selected tab styling: larger text size, bold, white */
         div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label[data-checked="true"] p {{
-            color: {PRIMARY_COLOR} !important;
-            font-weight: 700 !important;
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            color: white !important;
+        }}
+        
+        /* Hover tab styling: same size as selected */
+        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label:hover p {{
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            color: white !important;
         }}
 
         /* Content Area Adjustments */
@@ -222,20 +232,8 @@ def format_kpi_value(val):
 
 # Custom KPI Card Renderer
 def render_kpi_card(value, label, icon_svg):
-    st.markdown(
-        f"""
-        <div class="kpi-card">
-            <div class="kpi-icon">
-                {icon_svg}
-            </div>
-            <div>
-                <div class="kpi-value">{value}</div>
-                <div class="kpi-label">{label}</div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    html_card = f'<div class="kpi-card"><div class="kpi-icon">{icon_svg}</div><div><div class="kpi-value">{value}</div><div class="kpi-label">{label}</div></div></div>'
+    st.markdown(html_card, unsafe_allow_html=True)
 
 # Inline SVG icons colored with PRIMARY_COLOR (#f94c44)
 ICONS = {
@@ -362,46 +360,17 @@ def main():
         label_visibility="collapsed"
     )
     
-    # ---------------------------------------------------------
-    # SIDEBAR DATA LOADER
-    # ---------------------------------------------------------
-    st.sidebar.markdown('<div class="sidebar-section-title">Data Source</div>', unsafe_allow_html=True)
-    
-    # File Uploader
-    uploaded_file = st.sidebar.file_uploader(
-        "Upload custom opportunity data (.csv or .xlsx)",
-        type=["csv", "xlsx"]
-    )
-    
-    # Load raw data
-    data_loaded_msg = ""
-    df_raw = None
-    
-    if uploaded_file is not None:
+    # Load raw data directly from local opportunityData.csv
+    local_csv_path = os.path.join(os.path.dirname(__file__), "opportunityData.csv")
+    if os.path.exists(local_csv_path):
         try:
-            if uploaded_file.name.endswith(".xlsx"):
-                df_raw = pd.read_excel(uploaded_file)
-            else:
-                df_raw = pd.read_csv(uploaded_file)
-            data_loaded_msg = "✅ Using uploaded dataset"
+            df_raw = pd.read_csv(local_csv_path)
         except Exception as e:
-            st.sidebar.error(f"Error loading file: {e}")
-            
-    if df_raw is None:
-        # Fallback to local file or auto-generated mock file
-        local_csv_path = os.path.join(os.path.dirname(__file__), "opportunityData.csv")
-        if os.path.exists(local_csv_path):
-            try:
-                df_raw = pd.read_csv(local_csv_path)
-                data_loaded_msg = "ℹ️ Using default opportunityData.csv"
-            except Exception as e:
-                st.sidebar.error(f"Error loading default CSV: {e}")
-        else:
-            st.sidebar.warning("No data file found. Place opportunityData.csv in this directory or upload one.")
+            st.sidebar.error(f"Error loading opportunityData.csv: {e}")
             st.stop()
-            
-    # Display loading status
-    st.sidebar.markdown(f"<small style='color:white;'>{data_loaded_msg}</small>", unsafe_allow_html=True)
+    else:
+        st.sidebar.error("Error: 'opportunityData.csv' not found. Please place your file in the directory.")
+        st.stop()
     
     # Standardize columns
     df = standardize_columns(df_raw.copy())
@@ -423,7 +392,8 @@ def main():
     selected_categories = st.sidebar.multiselect(
         "Categories",
         options=categories_available,
-        default=categories_available
+        default=[],
+        placeholder="All categories (click to filter)"
     )
     
     # Filter 3: Location
@@ -431,7 +401,8 @@ def main():
     selected_locations = st.sidebar.multiselect(
         "Locations",
         options=locations_available,
-        default=locations_available
+        default=[],
+        placeholder="All locations (click to filter)"
     )
     
     # Filter 4: Duration Category
@@ -439,7 +410,8 @@ def main():
     selected_durations = st.sidebar.multiselect(
         "Duration Category",
         options=durations_available,
-        default=durations_available
+        default=[],
+        placeholder="All durations (click to filter)"
     )
     
     # Filter 5: Auto-Approve Status
@@ -461,20 +433,14 @@ def main():
     # Filter by Categories
     if selected_categories:
         filtered_df = filtered_df[filtered_df['category'].isin(selected_categories)]
-    else:
-        filtered_df = filtered_df.iloc[0:0] # empty if nothing selected
         
     # Filter by Locations
     if selected_locations:
         filtered_df = filtered_df[filtered_df['location'].isin(selected_locations)]
-    else:
-        filtered_df = filtered_df.iloc[0:0]
         
     # Filter by Duration Category
     if selected_durations:
         filtered_df = filtered_df[filtered_df['duration_category'].isin(selected_durations)]
-    else:
-        filtered_df = filtered_df.iloc[0:0]
         
     # Filter by Auto Approval Status
     if auto_approve_filter == "Auto-Approved Only":
@@ -671,7 +637,7 @@ def main():
                 showlegend=True,
                 legend=dict(
                     orientation="v",
-                    yanchor="center",
+                    yanchor="middle",
                     y=0.5,
                     xanchor="left",
                     x=1.02,
@@ -792,7 +758,7 @@ def main():
                     showlegend=True,
                     legend=dict(
                         orientation="v",
-                        yanchor="center",
+                        yanchor="middle",
                         y=0.5,
                         xanchor="left",
                         x=1.02,
