@@ -65,12 +65,14 @@ def inject_custom_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
 
-        /* Custom Header Navigation buttons styling (Pill shaped, no square borders) */
-        div[data-testid="column"] button {{
+        /* Custom Header Navigation buttons styling (Pill shaped, NO square borders at all) */
+        .stButton > button, div[data-testid="column"] button {{
             background-color: transparent !important;
             border: none !important;
-            color: #475569 !important;
+            background: none !important;
             box-shadow: none !important;
+            outline: none !important;
+            color: #475569 !important;
             font-family: 'Segoe UI', sans-serif !important;
             font-size: 1.15rem !important;
             font-weight: 700 !important;
@@ -83,11 +85,12 @@ def inject_custom_css():
             display: inline-block !important;
         }}
         
-        div[data-testid="column"] button:hover {{
+        .stButton > button:hover, div[data-testid="column"] button:hover {{
             background: linear-gradient(90deg, {PRIMARY_COLOR} 0%, {ACCENT_COLOR} 100%) !important;
             color: white !important;
             transform: scale(1.05) !important;
             box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
+            border: none !important;
         }}
 
         /* Custom styling for selectbox/multiselect inputs to be transparent with rounded corners */
@@ -203,7 +206,7 @@ ICONS = {
     """
 }
 
-# Standardize Columns of the Dataframe
+# Standardize Columns of the Dataframe and dynamically extract Expiry dates
 def standardize_columns(df):
     col_mapping = {}
     for col in df.columns:
@@ -274,11 +277,32 @@ def standardize_columns(df):
         df['currency_type'] = 'USD'
     if 'is_auto_approve' not in df.columns:
         df['is_auto_approve'] = True
-    if 'Year' not in df.columns:
-        df['Year'] = 2026
-    if 'Month' not in df.columns:
-        df['Month'] = 'July'
-    if 'Day' not in df.columns:
+
+    # Dynamically extract Year, Month, Day from raw date columns if present (e.g. 'created_date')
+    date_col = None
+    for c in df.columns:
+        if c.lower().strip() in ['created_date', 'created date', 'date', 'created_at_date', 'last_date_to_apply_date']:
+            date_col = c
+            break
+            
+    if date_col is not None:
+        try:
+            parsed_dates = pd.to_datetime(df[date_col], errors='coerce', dayfirst=True)
+            df['Year'] = parsed_dates.dt.year.fillna(2025).astype(int)
+            month_names = {
+                1: 'January', 2: 'February', 3: 'March', 4: 'April',
+                5: 'May', 6: 'June', 7: 'July', 8: 'August',
+                9: 'September', 10: 'October', 11: 'November', 12: 'December'
+            }
+            df['Month'] = parsed_dates.dt.month.map(month_names).fillna('February')
+            df['Day'] = parsed_dates.dt.day.fillna(1).astype(int)
+        except Exception:
+            df['Year'] = 2025
+            df['Month'] = 'February'
+            df['Day'] = 1
+    else:
+        df['Year'] = 2025
+        df['Month'] = 'February'
         df['Day'] = 1
         
     return df
@@ -311,34 +335,34 @@ def main():
     # ---------------------------------------------------------
     # HORIZONTAL PREMIUM WEBSITE NAVIGATION HEADER (Logo & Page title on the same row)
     # ---------------------------------------------------------
-    # Layout Ratios: Logo (1.2), Main title & subtitle beside it (4.5), Overview link (1.2), Insight link (1.2), Filters toggle (1.2)
-    col_logo, col_title, col_overview, col_insight, col_filter = st.columns([1.2, 4.5, 1.2, 1.2, 1.2])
+    # Layout Ratios: Brand info (4.2), Spacer (0.6), Overview link (1.2), Insight link (1.2), Filters toggle (1.2)
+    col_brand, col_space, col_overview, col_insight, col_filter = st.columns([4.2, 0.6, 1.2, 1.2, 1.2])
     
-    with col_logo:
-        # Show embedded base64 logo
+    with col_brand:
+        # Show embedded base64 logo with subtitle directly below it (no duplicate title text)
         if LOGO_B64:
             st.markdown(
                 f"""
-                <div style="display: flex; align-items: center; height: 42px;">
-                    <img src="data:image/png;base64,{LOGO_B64}" style="max-height: 38px; width: auto;" alt="Excelerate Logo">
+                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 42px;">
+                    <img src="data:image/png;base64,{LOGO_B64}" style="max-height: 25px; width: auto;" alt="Excelerate Logo">
+                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 800; margin-top: 3px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
         else:
-            st.markdown(f"<h3 style='color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:42px;'>Excelerate</h3>", unsafe_allow_html=True)
+            st.markdown(
+                f"""
+                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 42px;">
+                    <h3 style="color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:1.1;">Excelerate</h3>
+                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 800; margin-top: 3px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
 
-    with col_title:
-        # Styled title beside logo
-        st.markdown(
-            """
-            <div style="display: flex; flex-direction: column; justify-content: center; height: 42px; margin-left: 10px;">
-                <span style="font-size: 1.55rem; font-weight: 800; color: #f94c44; line-height: 1.1; letter-spacing: -0.5px;">Excelerate Learning Platform</span>
-                <span style="font-size: 0.78rem; color: #64748b; font-weight: 600; margin-top: 1px;">Opportunity Catalog & Strategic Operations</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    with col_space:
+        st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
 
     with col_overview:
         if st.button("Overview", key="nav_overview"):
@@ -356,8 +380,8 @@ def main():
             st.session_state.show_filters = not st.session_state.show_filters
             st.rerun()
 
-    # Active Tab Highlight Styling: Pill-shaped with gradient background and white text
-    # Targets Overview (3rd column) or Insight (4th column)
+    # Active Tab Highlight Styling: Pill-shaped with gradient background, white text, and NO borders
+    # Targets Overview (3rd column), Insight (4th column), and Filters when active (5th column)
     if st.session_state.page == 'Overview':
         st.markdown(
             """
@@ -366,6 +390,7 @@ def main():
                 background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
                 color: white !important;
                 box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
+                border: none !important;
             }
             </style>
             """,
@@ -379,6 +404,7 @@ def main():
                 background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
                 color: white !important;
                 box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
+                border: none !important;
             }
             </style>
             """,
@@ -393,14 +419,15 @@ def main():
                 background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
                 color: white !important;
                 box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
+                border: none !important;
             }
             </style>
             """,
             unsafe_allow_html=True
         )
 
-    # Thin Divider Line
-    st.markdown("<hr style='margin: 10px 0 25px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
+    # Tight Divider Line shifted upwards
+    st.markdown("<hr style='margin: 2px 0 18px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
     
     # ---------------------------------------------------------
     # FILTER SLICER PANEL (Horizontal container toggleable right below the header)
