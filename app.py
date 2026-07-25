@@ -5,14 +5,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 import base64
-from PIL import Image
 
 # Set Streamlit Page Configuration
 st.set_page_config(
     page_title="Excelerate Opportunity Dashboard",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # Brand Color Palette
@@ -22,16 +21,17 @@ ACCENT_COLOR = "#e7306b"
 DARK_TEXT_COLOR = "#1e293b"
 LIGHT_BG_COLOR = "#f8fafc"
 
-# Custom CSS for Premium UI Styling
+# Embedded Base64 Logo (automatically populated from logo_b64.txt)
+LOGO_B64 = "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"
+
+# Custom CSS for Premium UI Styling (Segoe UI, transparent elements, pill navigation)
 def inject_custom_css():
     st.markdown(
         f"""
         <style>
-        /* Import Google Font */
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-        
+        /* Set Global Font to Segoe UI */
         html, body, [class*="css"], .stApp {{
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
             color: {DARK_TEXT_COLOR};
         }}
 
@@ -57,6 +57,7 @@ def inject_custom_css():
         /* Styled headers */
         h1, h2, h3, h4, h5, h6 {{
             color: {PRIMARY_COLOR};
+            font-family: 'Segoe UI', sans-serif;
             font-weight: 700;
         }}
 
@@ -64,28 +65,29 @@ def inject_custom_css():
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
 
-        /* Header Navigation Styling */
+        /* Custom Header Navigation buttons styling (Pill shaped, no square borders) */
         div[data-testid="column"] button {{
             background-color: transparent !important;
             border: none !important;
             color: #475569 !important;
             box-shadow: none !important;
-            font-family: 'Outfit', sans-serif !important;
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            padding: 8px 0px !important;
-            transition: all 0.25s ease !important;
+            font-family: 'Segoe UI', sans-serif !important;
+            font-size: 1.15rem !important;
+            font-weight: 700 !important;
+            padding: 8px 24px !important;
+            border-radius: 24px !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
             height: auto !important;
-            width: auto !important;
+            width: 100% !important;
             cursor: pointer !important;
             display: inline-block !important;
-            border-bottom: 2px solid transparent !important;
-            border-radius: 0px !important;
         }}
         
         div[data-testid="column"] button:hover {{
-            color: {PRIMARY_COLOR} !important;
+            background: linear-gradient(90deg, {PRIMARY_COLOR} 0%, {ACCENT_COLOR} 100%) !important;
+            color: white !important;
             transform: scale(1.05) !important;
+            box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
         }}
 
         /* Custom styling for selectbox/multiselect inputs to be transparent with rounded corners */
@@ -107,15 +109,13 @@ def inject_custom_css():
             border-radius: 10px !important;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
         }}
-        
-        /* Expanders styling */
         div[data-testid="stExpander"] {{
             border-radius: 12px !important;
             background-color: transparent !important;
             border: 1px solid rgba(249, 76, 68, 0.2) !important;
         }}
 
-        /* KPI Card styling */
+        /* KPI Card styling with Segoe UI */
         .kpi-card {{
             background-color: white;
             padding: 20px;
@@ -162,7 +162,7 @@ def inject_custom_css():
         unsafe_allow_html=True
     )
 
-# Helper function to format big numbers (e.g. 6000 -> 6K)
+# Helper function to format big numbers
 def format_kpi_value(val):
     if val >= 1000000:
         return f"{val/1000000:.1f}M".replace(".0", "")
@@ -175,7 +175,7 @@ def render_kpi_card(value, label, icon_svg):
     html_card = f'<div class="kpi-card"><div class="kpi-icon">{icon_svg}</div><div><div class="kpi-value">{value}</div><div class="kpi-label">{label}</div></div></div>'
     st.markdown(html_card, unsafe_allow_html=True)
 
-# Inline SVG icons colored with PRIMARY_COLOR (#f94c44)
+# Inline SVG icons colored with PRIMARY_COLOR
 ICONS = {
     "opportunities": """
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -251,7 +251,6 @@ def standardize_columns(df):
     if 'location' not in df.columns:
         df['location'] = 'Virtual'
     if 'duration_category' not in df.columns:
-        # Infer duration category from duration value if possible
         if 'Sum of duration' in df.columns and 'duration_type' in df.columns:
             def infer_duration_cat(row):
                 val = row['Sum of duration']
@@ -271,7 +270,6 @@ def standardize_columns(df):
         else:
             df['duration_category'] = 'Less than 1 Day'
             
-    # Set default values for other missing columns
     if 'currency_type' not in df.columns:
         df['currency_type'] = 'USD'
     if 'is_auto_approve' not in df.columns:
@@ -287,8 +285,8 @@ def standardize_columns(df):
 
 # Main logic
 def main():
-    # Inject styling
     inject_custom_css()
+    
     # Initialize session state for navigation and filter toggle
     if 'page' not in st.session_state:
         st.session_state.page = 'Overview'
@@ -311,33 +309,36 @@ def main():
     df = standardize_columns(df_raw.copy())
     
     # ---------------------------------------------------------
-    # HORIZONTAL PREMIUM NAVIGATION HEADER (Website Navigation style)
+    # HORIZONTAL PREMIUM WEBSITE NAVIGATION HEADER (Logo & Page title on the same row)
     # ---------------------------------------------------------
-    col_logo, col_space, col_overview, col_insight, col_filter, col_cta = st.columns([2.5, 1.5, 1.0, 1.0, 1.3, 2.7])
+    # Layout Ratios: Logo (1.2), Main title & subtitle beside it (4.5), Overview link (1.2), Insight link (1.2), Filters toggle (1.2)
+    col_logo, col_title, col_overview, col_insight, col_filter = st.columns([1.2, 4.5, 1.2, 1.2, 1.2])
     
     with col_logo:
-        # Render dynamic base64 logo centered horizontally
-        logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-        if os.path.exists(logo_path):
-            import base64
-            try:
-                with open(logo_path, "rb") as f:
-                    logo_b64 = base64.b64encode(f.read()).decode()
-                st.markdown(
-                    f"""
-                    <div style="display: flex; align-items: center; height: 42px;">
-                        <img src="data:image/png;base64,{logo_b64}" style="max-height: 36px; width: auto;" alt="Excelerate Logo">
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            except Exception:
-                st.markdown(f"<h3 style='color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:42px;'>Excelerate</h3>", unsafe_allow_html=True)
+        # Show embedded base64 logo
+        if LOGO_B64:
+            st.markdown(
+                f"""
+                <div style="display: flex; align-items: center; height: 42px;">
+                    <img src="data:image/png;base64,{LOGO_B64}" style="max-height: 38px; width: auto;" alt="Excelerate Logo">
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
         else:
             st.markdown(f"<h3 style='color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:42px;'>Excelerate</h3>", unsafe_allow_html=True)
 
-    with col_space:
-        st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
+    with col_title:
+        # Styled title beside logo
+        st.markdown(
+            """
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 42px; margin-left: 10px;">
+                <span style="font-size: 1.55rem; font-weight: 800; color: #f94c44; line-height: 1.1; letter-spacing: -0.5px;">Excelerate Learning Platform</span>
+                <span style="font-size: 0.78rem; color: #64748b; font-weight: 600; margin-top: 1px;">Opportunity Catalog & Strategic Operations</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     with col_overview:
         if st.button("Overview", key="nav_overview"):
@@ -355,27 +356,16 @@ def main():
             st.session_state.show_filters = not st.session_state.show_filters
             st.rerun()
 
-    with col_cta:
-        st.markdown(
-            f"""
-            <a href="https://excelerate.gg" target="_blank" style="text-decoration: none;">
-                <div style="background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%); color: white; padding: 10px 16px; border-radius: 20px; font-weight: 700; text-align: center; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(231, 48, 107, 0.2); transition: all 0.25s ease; height: 38px; display: flex; align-items: center; justify-content: center;">
-                    Excelerate Your Future Today
-                </div>
-            </a>
-            """,
-            unsafe_allow_html=True
-        )
-
-    # Active State Underline/Color highlights for Header buttons
+    # Active Tab Highlight Styling: Pill-shaped with gradient background and white text
+    # Targets Overview (3rd column) or Insight (4th column)
     if st.session_state.page == 'Overview':
         st.markdown(
             """
             <style>
             div[data-testid="column"]:nth-of-type(3) button {
-                color: #f94c44 !important;
-                font-weight: 800 !important;
-                border-bottom: 2px solid #f94c44 !important;
+                background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
             }
             </style>
             """,
@@ -386,9 +376,9 @@ def main():
             """
             <style>
             div[data-testid="column"]:nth-of-type(4) button {
-                color: #f94c44 !important;
-                font-weight: 800 !important;
-                border-bottom: 2px solid #f94c44 !important;
+                background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
             }
             </style>
             """,
@@ -400,10 +390,9 @@ def main():
             """
             <style>
             div[data-testid="column"]:nth-of-type(5) button {
-                color: #f94c44 !important;
-                font-weight: 800 !important;
-                background-color: rgba(249, 76, 68, 0.06) !important;
-                border-radius: 6px !important;
+                background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%) !important;
+                color: white !important;
+                box-shadow: 0 4px 12px rgba(231, 48, 107, 0.25) !important;
             }
             </style>
             """,
@@ -414,25 +403,8 @@ def main():
     st.markdown("<hr style='margin: 10px 0 25px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
     
     # ---------------------------------------------------------
-    # MAIN CONTENT PANEL
+    # FILTER SLICER PANEL (Horizontal container toggleable right below the header)
     # ---------------------------------------------------------
-    
-    # Title & Banner Area
-    st.markdown(
-        f"""
-        <div style="margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, {PRIMARY_COLOR}, {ACCENT_COLOR}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                Excelerate Learning Platform
-            </h1>
-            <p style="margin: 5px 0 0 0; color: #64748b; font-size: 1rem; font-weight: 500;">
-                Opportunity Catalog Analysis & Strategic Operations Dashboard
-            </p>
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
-    
-    # Slicer Panel (Rendered horizontally right below the title if toggled open)
     if st.session_state.show_filters:
         with st.container():
             col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns(5)
@@ -477,10 +449,9 @@ def main():
                     options=["All", "Auto-Approved Only", "Manual Approval Only"],
                     key="auto_approve_filter"
                 )
-            # Add separation space below open filters panel
             st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
             
-    # Retrieve active filter values (using session state defaults if closed)
+    # Retrieve active filter values
     op_type_filter = st.session_state.get("op_type_filter", "All")
     selected_categories = st.session_state.get("selected_categories", [])
     selected_locations = st.session_state.get("selected_locations", [])
@@ -518,14 +489,10 @@ def main():
         # ---------------------------------------------------------
         # PAGE 1: OVERVIEW
         # ---------------------------------------------------------
-        
-        # 1. Row of KPI Cards
         col_kpi1, col_kpi2, col_kpi3, col_kpi4 = st.columns(4)
         
-        # Aggregate KPI figures
         tot_opps = len(filtered_df)
         tot_cats = filtered_df['category'].nunique()
-        # Scholarship counts (microscholarship > 0)
         tot_scholarships = len(filtered_df[filtered_df['Sum of microscholarship'] > 0])
         tot_locations = filtered_df['location'].nunique()
         
@@ -556,22 +523,16 @@ def main():
             
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         
-        # 2. Charts Row 1
         col_chart1, col_chart2 = st.columns(2)
         
         with col_chart1:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunity_id by Duration Category</h3>", unsafe_allow_html=True)
-            
-            # Group by duration category and count
             dur_counts = filtered_df['duration_category'].value_counts().reset_index()
             dur_counts.columns = ['Duration Category', 'Count']
             
-            # Sort categories properly
             sort_order = ["Less than 1 Day", "1 Week", "1 Month", "1 Year", "Long Term"]
             dur_counts['Duration Category'] = pd.Categorical(dur_counts['Duration Category'], categories=sort_order, ordered=True)
             dur_counts = dur_counts.sort_values('Duration Category')
-            
-            # Convert counts to K formatting labels
             dur_counts['Label'] = dur_counts['Count'].apply(format_kpi_value)
             
             fig1 = px.bar(
@@ -583,7 +544,7 @@ def main():
             )
             fig1.update_traces(
                 textposition='outside', 
-                textfont=dict(size=11, color='#1e293b', family='Outfit'),
+                textfont=dict(size=11, color='#1e293b', family='Segoe UI'),
                 cliponaxis=False,
                 marker=dict(line=dict(width=0))
             )
@@ -594,7 +555,7 @@ def main():
                 height=260,
                 xaxis_title="",
                 yaxis_title="",
-                xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Outfit')),
+                xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
                 yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)', showticklabels=False),
                 showlegend=False
             )
@@ -602,13 +563,10 @@ def main():
             
         with col_chart2:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunity_id by location</h3>", unsafe_allow_html=True)
-            
-            # Group by location and count (top 8)
             loc_counts = filtered_df['location'].value_counts().reset_index()
             loc_counts.columns = ['location', 'Count']
             loc_counts = loc_counts.sort_values('Count', ascending=True)
             
-            # Use top 10 locations to keep it clean, group the rest
             if len(loc_counts) > 10:
                 others_sum = loc_counts.iloc[:-9]['Count'].sum()
                 top_locs = loc_counts.iloc[-9:].copy()
@@ -627,7 +585,7 @@ def main():
             )
             fig2.update_traces(
                 textposition='outside',
-                textfont=dict(size=11, color='#1e293b', family='Outfit'),
+                textfont=dict(size=11, color='#1e293b', family='Segoe UI'),
                 cliponaxis=False,
                 marker=dict(line=dict(width=0))
             )
@@ -638,30 +596,24 @@ def main():
                 height=260,
                 xaxis_title="",
                 yaxis_title="",
-                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Outfit')),
+                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
                 xaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)', showticklabels=False),
                 showlegend=False
             )
             st.plotly_chart(fig2, use_container_width=True, config={'displayModeBar': False})
             
-        # 3. Charts Row 2
         col_chart3, col_chart4 = st.columns(2)
         
         with col_chart3:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunity_id by Opportunity Type</h3>", unsafe_allow_html=True)
-            
-            # Determine Free vs Paid counts
             free_count = len(filtered_df[filtered_df['Sum of fee'] == 0])
             paid_count = len(filtered_df[filtered_df['Sum of fee'] > 0])
-            total_type_count = free_count + paid_count
             
             type_df = pd.DataFrame({
                 'Opportunity Type': ['Free', 'Paid'],
                 'Count': [free_count, paid_count]
             })
             type_df = type_df[type_df['Count'] > 0]
-            
-            # Define colors
             donut_colors = [PRIMARY_COLOR, '#fca5a5']
             
             fig3 = go.Figure(data=[go.Pie(
@@ -671,7 +623,7 @@ def main():
                 marker=dict(colors=donut_colors),
                 textinfo='percent+value',
                 textposition='outside',
-                textfont=dict(size=11, family='Outfit', color='#1e293b'),
+                textfont=dict(size=11, family='Segoe UI', color='#1e293b'),
                 direction='clockwise',
                 sort=False
             )])
@@ -683,7 +635,7 @@ def main():
                     y=0.5,
                     xanchor="left",
                     x=1.02,
-                    font=dict(size=11, family='Outfit', color='#1e293b')
+                    font=dict(size=11, family='Segoe UI', color='#1e293b')
                 ),
                 margin=dict(l=10, r=80, t=10, b=10),
                 height=260,
@@ -693,13 +645,10 @@ def main():
             
         with col_chart4:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunities by category</h3>", unsafe_allow_html=True)
-            
-            # Group by category
             cat_counts = filtered_df['category'].value_counts().reset_index()
             cat_counts.columns = ['category', 'Count']
             cat_counts = cat_counts.sort_values('Count', ascending=True)
             
-            # Keep top 8 categories, group others if many
             if len(cat_counts) > 8:
                 others_sum = cat_counts.iloc[:-7]['Count'].sum()
                 top_cats = cat_counts.iloc[-7:].copy()
@@ -713,12 +662,12 @@ def main():
                 x='Count',
                 y='category',
                 orientation='h',
-                text='Count', # show exact count as requested in category horizontal bar chart
+                text='Count',
                 color_discrete_sequence=[PRIMARY_COLOR]
             )
             fig4.update_traces(
                 textposition='outside',
-                textfont=dict(size=11, color='#1e293b', family='Outfit'),
+                textfont=dict(size=11, color='#1e293b', family='Segoe UI'),
                 cliponaxis=False,
                 marker=dict(line=dict(width=0))
             )
@@ -729,25 +678,20 @@ def main():
                 height=260,
                 xaxis_title="",
                 yaxis_title="",
-                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Outfit')),
+                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
                 xaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)', showticklabels=False),
                 showlegend=False
             )
             st.plotly_chart(fig4, use_container_width=True, config={'displayModeBar': False})
             
-        # 4. Data Table Row
         st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
         with st.expander("📝 View Filtered Opportunity Raw Data Table", expanded=False):
-            # Display Table with standardized columns from the screenshot
             disp_cols = [
                 'name', 'category', 'Sum of fee', 'currency_type', 
                 'Sum of microscholarship', 'Sum of duration', 'duration_type', 
                 'location', 'Year', 'Month', 'Day', 'is_auto_approve'
             ]
-            # Verify which columns exist, select them
             table_cols = [c for c in disp_cols if c in filtered_df.columns]
-            
-            # Standardize column displays
             st.dataframe(
                 filtered_df[table_cols],
                 use_container_width=True,
@@ -758,14 +702,10 @@ def main():
         # ---------------------------------------------------------
         # PAGE 2: OPERATIONAL INSIGHTS
         # ---------------------------------------------------------
-        
-        # 1. Charts Row 1
         col_insight1, col_insight2 = st.columns(2)
         
         with col_insight1:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Sum of microscholarship by category</h3>", unsafe_allow_html=True)
-            
-            # Group by category and sum microscholarships
             sch_sum = filtered_df.groupby('category')['Sum of microscholarship'].sum().reset_index()
             sch_sum.columns = ['category', 'Total Funding']
             sch_sum = sch_sum[sch_sum['Total Funding'] > 0]
@@ -774,15 +714,10 @@ def main():
                 st.info("No microscholarship funding in the filtered data.")
             else:
                 sch_sum = sch_sum.sort_values('Total Funding', ascending=False)
-                
-                # Format legend/label strings
                 total_funding_sum = sch_sum['Total Funding'].sum()
                 sch_sum['percentage'] = (sch_sum['Total Funding'] / total_funding_sum * 100)
-                
-                # Standardize pie labels
                 sch_sum['Label'] = sch_sum.apply(lambda r: f"{r['category']} ({r['percentage']:.2f}%)", axis=1)
                 
-                # Use a sequential brand colors
                 pie_colors = [PRIMARY_COLOR, '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#475569', '#64748b']
                 
                 fig5 = go.Figure(data=[go.Pie(
@@ -792,7 +727,7 @@ def main():
                     textinfo='percent+value',
                     texttemplate='%{percent:.1%}<br>$%{value:.3s}',
                     textposition='inside',
-                    textfont=dict(size=10, family='Outfit', color='white'),
+                    textfont=dict(size=10, family='Segoe UI', color='white'),
                     direction='clockwise',
                     sort=True
                 )])
@@ -804,7 +739,7 @@ def main():
                         y=0.5,
                         xanchor="left",
                         x=1.02,
-                        font=dict(size=11, family='Outfit', color='#1e293b')
+                        font=dict(size=11, family='Segoe UI', color='#1e293b')
                     ),
                     margin=dict(l=10, r=80, t=10, b=10),
                     height=280,
@@ -814,8 +749,6 @@ def main():
                 
         with col_insight2:
             st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunity_id by Month(Expiry)</h3>", unsafe_allow_html=True)
-            
-            # Monthly counts
             months_order = [
                 'January', 'February', 'March', 'April', 'May', 'June', 
                 'July', 'August', 'September', 'October', 'November', 'December'
@@ -823,11 +756,8 @@ def main():
             month_counts = filtered_df['Month'].value_counts().reset_index()
             month_counts.columns = ['Month', 'Count']
             
-            # Sort by calendar months
             month_counts['Month'] = pd.Categorical(month_counts['Month'], categories=months_order, ordered=True)
             month_counts = month_counts.sort_values('Month')
-            # Drop months with 0 to keep the line continuous like in reference image, 
-            # but standardizing: let's keep only months that have data
             month_counts = month_counts[month_counts['Count'] > 0]
             
             fig6 = px.line(
@@ -843,7 +773,7 @@ def main():
                 text=month_counts['Count'],
                 textposition="top center",
                 mode="lines+markers+text",
-                textfont=dict(size=10, family='Outfit', color='#1e293b')
+                textfont=dict(size=10, family='Segoe UI', color='#1e293b')
             )
             fig6.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
@@ -852,22 +782,20 @@ def main():
                 height=280,
                 xaxis_title="",
                 yaxis_title="",
-                xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Outfit')),
+                xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
                 yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)', showticklabels=False),
                 showlegend=False
             )
             st.plotly_chart(fig6, use_container_width=True, config={'displayModeBar': False})
             
-        # 2. Row 2: Styled Conclusions Panel
         st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
-        
         st.markdown(
             f"""
             <div style="background-color: white; border: 2px solid {PRIMARY_COLOR}; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px;">
-                <div style="display: inline-block; background-color: {PRIMARY_COLOR}; color: white; font-weight: 800; font-size: 1.1rem; padding: 6px 20px; border-radius: 8px; margin-bottom: 18px; letter-spacing: 0.5px;">
+                <div style="display: inline-block; background: linear-gradient(90deg, {PRIMARY_COLOR} 0%, {ACCENT_COLOR} 100%); color: white; font-weight: 800; font-size: 1.1rem; padding: 6px 20px; border-radius: 20px; margin-bottom: 18px; letter-spacing: 0.5px;">
                     CONCLUSIONS
                 </div>
-                <ul style="list-style-type: none; padding-left: 0; margin: 0;">
+                <ul style="list-style-type: none; padding-left: 0; margin: 0; font-family: 'Segoe UI', sans-serif;">
                     <li style="margin-bottom: 12px; font-size: 1rem; line-height: 1.5; display: flex; align-items: flex-start;">
                         <span style="color: {PRIMARY_COLOR}; margin-right: 10px; font-size: 1.1rem;">•</span>
                         <span><strong>Internships</strong> represent the largest share of opportunities, indicating strong demand for practical, career-focused programs.</span>
