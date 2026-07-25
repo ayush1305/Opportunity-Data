@@ -24,16 +24,6 @@ LIGHT_BG_COLOR = "#f8fafc"
 
 # Custom CSS for Premium UI Styling
 def inject_custom_css():
-    # Convert local logo image to base64 for sidebar rendering
-    logo_b64 = ""
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
-        try:
-            with open(logo_path, "rb") as f:
-                logo_b64 = base64.b64encode(f.read()).decode()
-        except Exception as e:
-            pass
-
     st.markdown(
         f"""
         <style>
@@ -45,75 +35,23 @@ def inject_custom_css():
             color: {DARK_TEXT_COLOR};
         }}
 
-        /* Sidebar Styling with Gradient */
-        [data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, {PRIMARY_COLOR} 0%, {SECONDARY_COLOR} 50%, {ACCENT_COLOR} 100%);
-            color: white !important;
-            border-right: none;
+        /* Completely hide Streamlit sidebar and collapsed sidebar controls */
+        [data-testid="stSidebar"], [data-testid="collapsedControl"] {{
+            display: none !important;
         }}
 
-        /* Make sidebar text and labels white */
-        [data-testid="stSidebar"] label, 
-        [data-testid="stSidebar"] p, 
-        [data-testid="stSidebar"] span,
-        [data-testid="stSidebar"] .stRadio div {{
-            color: white !important;
+        /* Content Area Adjustments - start right at the top */
+        header[data-testid="stHeader"] {{
+            display: none !important;
         }}
-
-        /* Sidebar Uploader text custom style */
-        [data-testid="stSidebar"] .stMarkdown h3, 
-        [data-testid="stSidebar"] .stMarkdown p {{
-            color: white !important;
+        .stAppHeader {{
+            display: none !important;
         }}
-        
-        /* Stylized Sidebar Radio Buttons */
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] {{
-            gap: 12px;
-            display: flex;
-            flex-direction: column;
-            padding: 10px 0;
-        }}
-        
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label {{
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 4px 0px !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            cursor: pointer;
-            width: auto !important;
-            display: block !important;
-        }}
-        
-        /* Unselected tab text styling */
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label p {{
-            font-size: 1.15rem !important;
-            font-weight: 500 !important;
-            color: rgba(255, 255, 255, 0.65) !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            margin: 0 !important;
-        }}
-        
-        /* Selected tab styling: larger text size, bold, white */
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label[data-checked="true"] p {{
-            font-size: 1.6rem !important;
-            font-weight: 800 !important;
-            color: white !important;
-        }}
-        
-        /* Hover tab styling: same size as selected */
-        div[data-testid="stSidebarUserContent"] .stRadio div[role="radiogroup"] label:hover p {{
-            font-size: 1.6rem !important;
-            font-weight: 800 !important;
-            color: white !important;
-        }}
-
-        /* Content Area Adjustments */
         .block-container {{
-            padding-top: 1.5rem;
-            padding-bottom: 2rem;
-            padding-left: 2rem;
-            padding-right: 2rem;
+            padding-top: 0.5rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
         }}
 
         /* Styled headers */
@@ -125,33 +63,56 @@ def inject_custom_css():
         /* Hide Streamlit default styling elements */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
-        header {{visibility: hidden;}}
 
-        /* White rounded box for Logo */
-        .logo-container {{
-            background-color: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        /* Header Navigation Styling */
+        div[data-testid="column"] button {{
+            background-color: transparent !important;
+            border: none !important;
+            color: #475569 !important;
+            box-shadow: none !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            padding: 8px 0px !important;
+            transition: all 0.25s ease !important;
+            height: auto !important;
+            width: auto !important;
+            cursor: pointer !important;
+            display: inline-block !important;
+            border-bottom: 2px solid transparent !important;
+            border-radius: 0px !important;
         }}
-        .logo-img {{
-            max-width: 90%;
-            height: auto;
+        
+        div[data-testid="column"] button:hover {{
+            color: {PRIMARY_COLOR} !important;
+            transform: scale(1.05) !important;
         }}
 
-        /* Filter headers in Sidebar */
-        .sidebar-section-title {{
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 5px;
-            color: white;
+        /* Custom styling for selectbox/multiselect inputs to be transparent with rounded corners */
+        div[data-baseweb="select"] {{
+            background-color: transparent !important;
+            border-radius: 10px !important;
+            border: 1px solid rgba(249, 76, 68, 0.3) !important;
+            box-shadow: none !important;
+        }}
+        div[data-baseweb="select"] > div {{
+            background-color: transparent !important;
+            border-radius: 10px !important;
+        }}
+        div[data-baseweb="select"] span {{
+            color: #1e293b !important;
+        }}
+        div[role="listbox"] {{
+            background-color: white !important;
+            border-radius: 10px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+        }}
+        
+        /* Expanders styling */
+        div[data-testid="stExpander"] {{
+            border-radius: 12px !important;
+            background-color: transparent !important;
+            border: 1px solid rgba(249, 76, 68, 0.2) !important;
         }}
 
         /* KPI Card styling */
@@ -200,27 +161,6 @@ def inject_custom_css():
         """,
         unsafe_allow_html=True
     )
-
-    # Render Sidebar Logo Container
-    if logo_b64:
-        st.sidebar.markdown(
-            f"""
-            <div class="logo-container">
-                <img src="data:image/png;base64,{logo_b64}" class="logo-img" alt="Excelerate Logo">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        # Fallback text logo if file doesn't exist
-        st.sidebar.markdown(
-            f"""
-            <div class="logo-container">
-                <h2 style="color:{PRIMARY_COLOR}; margin:0; font-weight:800; letter-spacing:-1px;">Excelerate</h2>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
 # Helper function to format big numbers (e.g. 6000 -> 6K)
 def format_kpi_value(val):
@@ -349,113 +289,138 @@ def standardize_columns(df):
 def main():
     # Inject styling
     inject_custom_css()
-    
-    # ---------------------------------------------------------
-    # SIDEBAR NAVIGATION
-    # ---------------------------------------------------------
-    st.sidebar.markdown('<div class="sidebar-section-title">Navigation</div>', unsafe_allow_html=True)
-    page = st.sidebar.radio(
-        label="Select Dashboard Page",
-        options=["Overview", "Insight"],
-        label_visibility="collapsed"
-    )
-    
+    # Initialize session state for navigation and filter toggle
+    if 'page' not in st.session_state:
+        st.session_state.page = 'Overview'
+    if 'show_filters' not in st.session_state:
+        st.session_state.show_filters = False
+
     # Load raw data directly from local opportunityData.csv
     local_csv_path = os.path.join(os.path.dirname(__file__), "opportunityData.csv")
     if os.path.exists(local_csv_path):
         try:
             df_raw = pd.read_csv(local_csv_path)
         except Exception as e:
-            st.sidebar.error(f"Error loading opportunityData.csv: {e}")
+            st.error(f"Error loading opportunityData.csv: {e}")
             st.stop()
     else:
-        st.sidebar.error("Error: 'opportunityData.csv' not found. Please place your file in the directory.")
+        st.error("Error: 'opportunityData.csv' not found. Please place your file in the directory.")
         st.stop()
-    
+        
     # Standardize columns
     df = standardize_columns(df_raw.copy())
     
     # ---------------------------------------------------------
-    # SIDEBAR FILTERS
+    # HORIZONTAL PREMIUM NAVIGATION HEADER (Website Navigation style)
     # ---------------------------------------------------------
-    st.sidebar.markdown('<div class="sidebar-section-title">Interactive Filters</div>', unsafe_allow_html=True)
+    col_logo, col_space, col_overview, col_insight, col_filter, col_cta = st.columns([2.5, 1.5, 1.0, 1.0, 1.3, 2.7])
     
-    # Filter 1: Opportunity Type (Free vs Paid)
-    op_type_filter = st.sidebar.radio(
-        "Opportunity Type",
-        options=["All", "Free Only", "Paid Only"],
-        index=0
-    )
+    with col_logo:
+        # Render dynamic base64 logo centered horizontally
+        logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+        if os.path.exists(logo_path):
+            import base64
+            try:
+                with open(logo_path, "rb") as f:
+                    logo_b64 = base64.b64encode(f.read()).decode()
+                st.markdown(
+                    f"""
+                    <div style="display: flex; align-items: center; height: 42px;">
+                        <img src="data:image/png;base64,{logo_b64}" style="max-height: 36px; width: auto;" alt="Excelerate Logo">
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            except Exception:
+                st.markdown(f"<h3 style='color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:42px;'>Excelerate</h3>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<h3 style='color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:42px;'>Excelerate</h3>", unsafe_allow_html=True)
+
+    with col_space:
+        st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
+
+    with col_overview:
+        if st.button("Overview", key="nav_overview"):
+            st.session_state.page = "Overview"
+            st.rerun()
+
+    with col_insight:
+        if st.button("Insight", key="nav_insight"):
+            st.session_state.page = "Insight"
+            st.rerun()
+
+    with col_filter:
+        filter_text = "Filters ▾" if st.session_state.show_filters else "Filters"
+        if st.button(filter_text, key="nav_filters"):
+            st.session_state.show_filters = not st.session_state.show_filters
+            st.rerun()
+
+    with col_cta:
+        st.markdown(
+            f"""
+            <a href="https://excelerate.gg" target="_blank" style="text-decoration: none;">
+                <div style="background: linear-gradient(90deg, #f94c44 0%, #e7306b 100%); color: white; padding: 10px 16px; border-radius: 20px; font-weight: 700; text-align: center; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(231, 48, 107, 0.2); transition: all 0.25s ease; height: 38px; display: flex; align-items: center; justify-content: center;">
+                    Excelerate Your Future Today
+                </div>
+            </a>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # Active State Underline/Color highlights for Header buttons
+    if st.session_state.page == 'Overview':
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"]:nth-of-type(3) button {
+                color: #f94c44 !important;
+                font-weight: 800 !important;
+                border-bottom: 2px solid #f94c44 !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"]:nth-of-type(4) button {
+                color: #f94c44 !important;
+                font-weight: 800 !important;
+                border-bottom: 2px solid #f94c44 !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+    if st.session_state.show_filters:
+        st.markdown(
+            """
+            <style>
+            div[data-testid="column"]:nth-of-type(5) button {
+                color: #f94c44 !important;
+                font-weight: 800 !important;
+                background-color: rgba(249, 76, 68, 0.06) !important;
+                border-radius: 6px !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # Thin Divider Line
+    st.markdown("<hr style='margin: 10px 0 25px 0; border: 0; border-top: 1px solid #e2e8f0;'>", unsafe_allow_html=True)
     
-    # Filter 2: Category
-    categories_available = sorted(df['category'].dropna().unique())
-    selected_categories = st.sidebar.multiselect(
-        "Categories",
-        options=categories_available,
-        default=[],
-        placeholder="All categories (click to filter)"
-    )
-    
-    # Filter 3: Location
-    locations_available = sorted(df['location'].dropna().unique())
-    selected_locations = st.sidebar.multiselect(
-        "Locations",
-        options=locations_available,
-        default=[],
-        placeholder="All locations (click to filter)"
-    )
-    
-    # Filter 4: Duration Category
-    durations_available = sorted(df['duration_category'].dropna().unique())
-    selected_durations = st.sidebar.multiselect(
-        "Duration Category",
-        options=durations_available,
-        default=[],
-        placeholder="All durations (click to filter)"
-    )
-    
-    # Filter 5: Auto-Approve Status
-    auto_approve_filter = st.sidebar.radio(
-        "Auto Approval Status",
-        options=["All", "Auto-Approved Only", "Manual Approval Only"],
-        index=0
-    )
-    
-    # Apply Filters to DataFrame
-    filtered_df = df.copy()
-    
-    # Filter by Opportunity Type
-    if op_type_filter == "Free Only":
-        filtered_df = filtered_df[filtered_df['Sum of fee'] == 0]
-    elif op_type_filter == "Paid Only":
-        filtered_df = filtered_df[filtered_df['Sum of fee'] > 0]
-        
-    # Filter by Categories
-    if selected_categories:
-        filtered_df = filtered_df[filtered_df['category'].isin(selected_categories)]
-        
-    # Filter by Locations
-    if selected_locations:
-        filtered_df = filtered_df[filtered_df['location'].isin(selected_locations)]
-        
-    # Filter by Duration Category
-    if selected_durations:
-        filtered_df = filtered_df[filtered_df['duration_category'].isin(selected_durations)]
-        
-    # Filter by Auto Approval Status
-    if auto_approve_filter == "Auto-Approved Only":
-        filtered_df = filtered_df[filtered_df['is_auto_approve'] == True]
-    elif auto_approve_filter == "Manual Approval Only":
-        filtered_df = filtered_df[filtered_df['is_auto_approve'] == False]
-        
     # ---------------------------------------------------------
     # MAIN CONTENT PANEL
     # ---------------------------------------------------------
     
-    # Header Banner Area
+    # Title & Banner Area
     st.markdown(
         f"""
-        <div style="margin-bottom: 25px;">
+        <div style="margin-bottom: 20px;">
             <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, {PRIMARY_COLOR}, {ACCENT_COLOR}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                 Excelerate Learning Platform
             </h1>
@@ -467,12 +432,89 @@ def main():
         unsafe_allow_html=True
     )
     
+    # Slicer Panel (Rendered horizontally right below the title if toggled open)
+    if st.session_state.show_filters:
+        with st.container():
+            col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns(5)
+            
+            with col_f1:
+                op_type_filter = st.selectbox(
+                    "Opportunity Type",
+                    options=["All", "Free Only", "Paid Only"],
+                    key="op_type_filter"
+                )
+                
+            with col_f2:
+                categories_available = sorted(df['category'].dropna().unique())
+                selected_categories = st.multiselect(
+                    "Categories",
+                    options=categories_available,
+                    key="selected_categories",
+                    placeholder="All"
+                )
+                
+            with col_f3:
+                locations_available = sorted(df['location'].dropna().unique())
+                selected_locations = st.multiselect(
+                    "Locations",
+                    options=locations_available,
+                    key="selected_locations",
+                    placeholder="All"
+                )
+                
+            with col_f4:
+                durations_available = sorted(df['duration_category'].dropna().unique())
+                selected_durations = st.multiselect(
+                    "Duration Category",
+                    options=durations_available,
+                    key="selected_durations",
+                    placeholder="All"
+                )
+                
+            with col_f5:
+                auto_approve_filter = st.selectbox(
+                    "Auto Approval Status",
+                    options=["All", "Auto-Approved Only", "Manual Approval Only"],
+                    key="auto_approve_filter"
+                )
+            # Add separation space below open filters panel
+            st.markdown("<div style='margin-bottom: 25px;'></div>", unsafe_allow_html=True)
+            
+    # Retrieve active filter values (using session state defaults if closed)
+    op_type_filter = st.session_state.get("op_type_filter", "All")
+    selected_categories = st.session_state.get("selected_categories", [])
+    selected_locations = st.session_state.get("selected_locations", [])
+    selected_durations = st.session_state.get("selected_durations", [])
+    auto_approve_filter = st.session_state.get("auto_approve_filter", "All")
+    
+    # Apply Filters to DataFrame
+    filtered_df = df.copy()
+    
+    if op_type_filter == "Free Only":
+        filtered_df = filtered_df[filtered_df['Sum of fee'] == 0]
+    elif op_type_filter == "Paid Only":
+        filtered_df = filtered_df[filtered_df['Sum of fee'] > 0]
+        
+    if selected_categories:
+        filtered_df = filtered_df[filtered_df['category'].isin(selected_categories)]
+        
+    if selected_locations:
+        filtered_df = filtered_df[filtered_df['location'].isin(selected_locations)]
+        
+    if selected_durations:
+        filtered_df = filtered_df[filtered_df['duration_category'].isin(selected_durations)]
+        
+    if auto_approve_filter == "Auto-Approved Only":
+        filtered_df = filtered_df[filtered_df['is_auto_approve'] == True]
+    elif auto_approve_filter == "Manual Approval Only":
+        filtered_df = filtered_df[filtered_df['is_auto_approve'] == False]
+        
     if filtered_df.empty:
-        st.warning("⚠️ No opportunities match the selected filter criteria. Please adjust your filters in the sidebar.")
+        st.warning("⚠️ No opportunities match the selected filter criteria. Please open the Filters panel and adjust your selections.")
         st.stop()
         
     # Page Routing
-    if page == "Overview":
+    if st.session_state.page == "Overview":
         # ---------------------------------------------------------
         # PAGE 1: OVERVIEW
         # ---------------------------------------------------------
@@ -712,7 +754,7 @@ def main():
                 height=300
             )
             
-    elif page == "Insight":
+    elif st.session_state.page == "Insight":
         # ---------------------------------------------------------
         # PAGE 2: OPERATIONAL INSIGHTS
         # ---------------------------------------------------------
