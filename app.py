@@ -804,6 +804,9 @@ def main():
             # Group by year and month
             grouped_time = timeline_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
             
+            # Filter out erroneous/empty years like 1970 or extremely old historical years
+            grouped_time = grouped_time[grouped_time['Year'] > 2020]
+            
             # Create a proper date column for chronological sorting
             grouped_time['Date'] = pd.to_datetime(
                 grouped_time['Year'].astype(str) + '-' + grouped_time['Month_Num'].astype(str) + '-01',
@@ -811,24 +814,28 @@ def main():
             )
             grouped_time = grouped_time.sort_values('Date')
             
-            # Plot chronological area time series chart
+            # Format labels as "Nov 2023" for categorical ticks
+            grouped_time['Year_Month_Label'] = grouped_time['Date'].dt.strftime('%b %Y')
+            
+            # Plot chronological area time series chart with discrete categories to prevent overlap and gaps
             fig6 = px.area(
                 grouped_time,
-                x='Date',
+                x='Year_Month_Label',
                 y='Count',
                 color_discrete_sequence=[PRIMARY_COLOR]
             )
             fig6.update_traces(
                 line=dict(width=3, shape='spline'),
-                marker=dict(size=6, color='#1e293b', line=dict(width=1.5, color='white')),
-                mode="lines+markers",
-                fill='tozeroy',
-                fillcolor='rgba(249, 76, 68, 0.08)'
+                marker=dict(size=7, color='#1e293b', line=dict(width=1.5, color='white')),
+                mode="lines+markers+text",
+                text=grouped_time['Count'].apply(format_kpi_value),
+                textposition="top center",
+                textfont=dict(size=10, family='Segoe UI', color='#1e293b')
             )
             fig6.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
                 paper_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=10, r=10, t=10, b=10),
+                margin=dict(l=10, r=10, t=15, b=10),
                 height=280,
                 xaxis_title="",
                 yaxis_title="",
@@ -836,9 +843,7 @@ def main():
                     showgrid=False, 
                     linecolor='#e2e8f0', 
                     tickfont=dict(size=11, family='Segoe UI'),
-                    type='date',
-                    dtick="M3", # Tick every 3 months for readable density
-                    tickformat="%b %Y" # Format like "Nov 2023"
+                    type='category' # Force categorical axis to avoid continuous year spacing
                 ),
                 yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)'),
                 showlegend=False
