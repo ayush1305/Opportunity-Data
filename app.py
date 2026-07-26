@@ -440,7 +440,7 @@ def main():
     # ---------------------------------------------------------
     if st.session_state.show_filters:
         with st.container():
-            col_f1, col_f2, col_f3, col_f4, col_f5 = st.columns(5)
+            col_f1, col_f2, col_f3, col_f4, col_f5, col_f6 = st.columns(6)
             
             with col_f1:
                 op_type_filter = st.selectbox(
@@ -450,6 +450,15 @@ def main():
                 )
                 
             with col_f2:
+                years_available = sorted(df['Year'].dropna().unique())
+                years_options = ["All"] + [str(y) for y in years_available]
+                selected_year = st.selectbox(
+                    "Year Filter",
+                    options=years_options,
+                    key="selected_year"
+                )
+                
+            with col_f3:
                 categories_available = sorted(df['category'].dropna().unique())
                 selected_categories = st.multiselect(
                     "Categories",
@@ -458,7 +467,7 @@ def main():
                     placeholder="All"
                 )
                 
-            with col_f3:
+            with col_f4:
                 locations_available = sorted(df['location'].dropna().unique())
                 selected_locations = st.multiselect(
                     "Locations",
@@ -467,7 +476,7 @@ def main():
                     placeholder="All"
                 )
                 
-            with col_f4:
+            with col_f5:
                 durations_available = sorted(df['duration_category'].dropna().unique())
                 selected_durations = st.multiselect(
                     "Duration Category",
@@ -476,7 +485,7 @@ def main():
                     placeholder="All"
                 )
                 
-            with col_f5:
+            with col_f6:
                 auto_approve_filter = st.selectbox(
                     "Auto Approval Status",
                     options=["All", "Auto-Approved Only", "Manual Approval Only"],
@@ -486,6 +495,7 @@ def main():
             
     # Retrieve active filter values
     op_type_filter = st.session_state.get("op_type_filter", "All")
+    selected_year = st.session_state.get("selected_year", "All")
     selected_categories = st.session_state.get("selected_categories", [])
     selected_locations = st.session_state.get("selected_locations", [])
     selected_durations = st.session_state.get("selected_durations", [])
@@ -498,6 +508,9 @@ def main():
         filtered_df = filtered_df[filtered_df['Sum of fee'] == 0]
     elif op_type_filter == "Paid Only":
         filtered_df = filtered_df[filtered_df['Sum of fee'] > 0]
+
+    if selected_year != "All":
+        filtered_df = filtered_df[filtered_df['Year'] == int(selected_year)]
         
     if selected_categories:
         filtered_df = filtered_df[filtered_df['category'].isin(selected_categories)]
@@ -730,6 +743,7 @@ def main():
         # ---------------------------------------------------------
         # PAGE 2: OPERATIONAL INSIGHTS
         # ---------------------------------------------------------
+        # Row 1: Donut & Seasonal Grouped Bar Chart
         col_insight1, col_insight2 = st.columns(2)
         
         with col_insight1:
@@ -776,41 +790,34 @@ def main():
                 st.plotly_chart(fig5, use_container_width=True, config={'displayModeBar': False})
                 
         with col_insight2:
-            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Monthly Trend of Opportunities over Time (by Apply Deadline)</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Monthly Opportunity Expiry Seasonality Trends (by Month & Year)</h3>", unsafe_allow_html=True)
             
-            # Extract a chronological timeline based on Expiry Year and Month
-            timeline_df = filtered_df.copy()
+            # Prepare monthly grouped counts by Year
+            season_df = filtered_df.copy()
             month_map = {
                 'January': 1, 'February': 2, 'March': 3, 'April': 4,
                 'May': 5, 'June': 6, 'July': 7, 'August': 8,
                 'September': 9, 'October': 10, 'November': 11, 'December': 12
             }
-            timeline_df['Month_Num'] = timeline_df['Month'].map(month_map)
+            season_df['Month_Num'] = season_df['Month'].map(month_map)
             
-            # Group by year and month
-            grouped_time = timeline_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
-            grouped_time = grouped_time.sort_values(['Year', 'Month_Num'])
+            grouped_season = season_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
+            months_order = [
+                'January', 'February', 'March', 'April', 'May', 'June', 
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ]
+            grouped_season['Month'] = pd.Categorical(grouped_season['Month'], categories=months_order, ordered=True)
+            grouped_season = grouped_season.sort_values(['Month_Num', 'Year'])
+            grouped_season['Year'] = grouped_season['Year'].astype(str) # Convert to string for discrete color mapping
             
-            # Format labels as YYYY-Mon (e.g. 2025-Feb)
-            grouped_time['Year_Month_Label'] = grouped_time.apply(lambda r: f"{r['Year']} {r['Month'][:3]}", axis=1)
-            
-            # Plot chronological area time series chart
-            fig6 = px.line(
-                grouped_time,
-                x='Year_Month_Label',
+            # Grouped bar chart comparing month expiries side-by-side by year
+            fig6 = px.bar(
+                grouped_season,
+                x='Month',
                 y='Count',
-                markers=True,
-                color_discrete_sequence=[PRIMARY_COLOR]
-            )
-            fig6.update_traces(
-                line=dict(width=3, shape='spline'),
-                marker=dict(size=7, color='#1e293b', line=dict(width=1.5, color='white')),
-                fill='tozeroy',
-                fillcolor='rgba(249, 76, 68, 0.08)',
-                mode="lines+markers+text",
-                text=grouped_time['Count'].apply(format_kpi_value),
-                textposition="top center",
-                textfont=dict(size=10, family='Segoe UI', color='#1e293b')
+                color='Year',
+                barmode='group',
+                color_discrete_sequence=['#f94c44', '#f14159', '#e7306b', '#fca5a5', '#475569']
             )
             fig6.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
@@ -820,10 +827,102 @@ def main():
                 xaxis_title="",
                 yaxis_title="",
                 xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
-                yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)', showticklabels=False),
-                showlegend=False
+                yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)'),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                    font=dict(size=10, family='Segoe UI', color='#1e293b')
+                )
             )
             st.plotly_chart(fig6, use_container_width=True, config={'displayModeBar': False})
+
+        # Row 2: Two Brand New Meaningful Operations Charts
+        st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
+        col_insight3, col_insight4 = st.columns(2)
+
+        with col_insight3:
+            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Monetization Mix: Opportunity Fee Type (Free vs Paid) by Category</h3>", unsafe_allow_html=True)
+            
+            # Stacked horizontal bar chart showing Monetization Mix by Category
+            monetize_df = filtered_df.copy()
+            monetize_df['Monetization'] = monetize_df['Sum of fee'].apply(lambda x: 'Paid' if x > 0 else 'Free')
+            
+            mon_grouped = monetize_df.groupby(['category', 'Monetization']).size().reset_index(name='Count')
+            # Sort categories by total count for structured plotting
+            category_totals = mon_grouped.groupby('category')['Count'].sum().reset_index().sort_values('Count', ascending=True)
+            mon_grouped['category'] = pd.Categorical(mon_grouped['category'], categories=category_totals['category'], ordered=True)
+            mon_grouped = mon_grouped.sort_values('category')
+            
+            fig7 = px.bar(
+                mon_grouped,
+                x='Count',
+                y='category',
+                color='Monetization',
+                orientation='h',
+                color_discrete_map={'Free': '#f94c44', 'Paid': '#475569'}
+            )
+            fig7.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=280,
+                xaxis_title="",
+                yaxis_title="",
+                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
+                xaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)'),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                    font=dict(size=10, family='Segoe UI', color='#1e293b')
+                )
+            )
+            st.plotly_chart(fig7, use_container_width=True, config={'displayModeBar': False})
+
+        with col_insight4:
+            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Operational Flow: Auto Approval Status by Category</h3>", unsafe_allow_html=True)
+            
+            # Stacked horizontal bar chart showing Auto-Approval ratios by Category
+            flow_df = filtered_df.copy()
+            flow_df['Approval Status'] = flow_df['is_auto_approve'].apply(lambda x: 'Auto-Approved' if x else 'Manual Approval')
+            
+            flow_grouped = flow_df.groupby(['category', 'Approval Status']).size().reset_index(name='Count')
+            # Sort categories by total count
+            flow_grouped['category'] = pd.Categorical(flow_grouped['category'], categories=category_totals['category'], ordered=True)
+            flow_grouped = flow_grouped.sort_values('category')
+            
+            fig8 = px.bar(
+                flow_grouped,
+                x='Count',
+                y='category',
+                color='Approval Status',
+                orientation='h',
+                color_discrete_map={'Auto-Approved': '#e7306b', 'Manual Approval': '#475569'}
+            )
+            fig8.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=10, r=10, t=10, b=10),
+                height=280,
+                xaxis_title="",
+                yaxis_title="",
+                yaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
+                xaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)'),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1,
+                    font=dict(size=10, family='Segoe UI', color='#1e293b')
+                )
+            )
+            st.plotly_chart(fig8, use_container_width=True, config={'displayModeBar': False})
             
         st.markdown("<div style='margin-top: 25px;'></div>", unsafe_allow_html=True)
         st.markdown(
