@@ -206,7 +206,7 @@ ICONS = {
     """
 }
 
-# Standardize Columns of the Dataframe and dynamically extract Expiry dates
+# Standardize Columns of the Dataframe and dynamically extract Deadline/Expiry dates
 def standardize_columns(df):
     col_mapping = {}
     for col in df.columns:
@@ -278,12 +278,19 @@ def standardize_columns(df):
     if 'is_auto_approve' not in df.columns:
         df['is_auto_approve'] = True
 
-    # Dynamically extract Year, Month, Day from raw date columns if present (e.g. 'created_date')
+    # Search for applying/deadline date first to establish the time axis
     date_col = None
     for c in df.columns:
-        if c.lower().strip() in ['created_date', 'created date', 'date', 'created_at_date', 'last_date_to_apply_date']:
+        if c.lower().strip() in ['last_date_to_apply_date', 'last_date_to_apply date', 'expiry_date', 'deadline']:
             date_col = c
             break
+            
+    # Fallback to created_date if applying date not found
+    if date_col is None:
+        for c in df.columns:
+            if c.lower().strip() in ['created_date', 'created date', 'date', 'created_at_date']:
+                date_col = c
+                break
             
     if date_col is not None:
         try:
@@ -381,7 +388,6 @@ def main():
             st.rerun()
 
     # Active Tab Highlight Styling: Pill-shaped with gradient background, white text, and NO borders
-    # Targets Overview (3rd column), Insight (4th column), and Filters when active (5th column)
     if st.session_state.page == 'Overview':
         st.markdown(
             """
@@ -676,12 +682,7 @@ def main():
             cat_counts.columns = ['category', 'Count']
             cat_counts = cat_counts.sort_values('Count', ascending=True)
             
-            if len(cat_counts) > 8:
-                others_sum = cat_counts.iloc[:-7]['Count'].sum()
-                top_cats = cat_counts.iloc[-7:].copy()
-                others_df = pd.DataFrame([{'category': 'Other Categories', 'Count': others_sum}])
-                cat_counts = pd.concat([others_df, top_cats], ignore_index=True)
-                
+            # Show every category individually - no "Other Categories" grouping
             cat_counts['Label'] = cat_counts['Count'].apply(format_kpi_value)
             
             fig4 = px.bar(
@@ -775,31 +776,40 @@ def main():
                 st.plotly_chart(fig5, use_container_width=True, config={'displayModeBar': False})
                 
         with col_insight2:
-            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Count of opportunity_id by Month(Expiry)</h3>", unsafe_allow_html=True)
-            months_order = [
-                'January', 'February', 'March', 'April', 'May', 'June', 
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ]
-            month_counts = filtered_df['Month'].value_counts().reset_index()
-            month_counts.columns = ['Month', 'Count']
+            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Monthly Trend of Opportunities over Time (by Apply Deadline)</h3>", unsafe_allow_html=True)
             
-            month_counts['Month'] = pd.Categorical(month_counts['Month'], categories=months_order, ordered=True)
-            month_counts = month_counts.sort_values('Month')
-            month_counts = month_counts[month_counts['Count'] > 0]
+            # Extract a chronological timeline based on Expiry Year and Month
+            timeline_df = filtered_df.copy()
+            month_map = {
+                'January': 1, 'February': 2, 'March': 3, 'April': 4,
+                'May': 5, 'June': 6, 'July': 7, 'August': 8,
+                'September': 9, 'October': 10, 'November': 11, 'December': 12
+            }
+            timeline_df['Month_Num'] = timeline_df['Month'].map(month_map)
             
+            # Group by year and month
+            grouped_time = timeline_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
+            grouped_time = grouped_time.sort_values(['Year', 'Month_Num'])
+            
+            # Format labels as YYYY-Mon (e.g. 2025-Feb)
+            grouped_time['Year_Month_Label'] = grouped_time.apply(lambda r: f"{r['Year']} {r['Month'][:3]}", axis=1)
+            
+            # Plot chronological area time series chart
             fig6 = px.line(
-                month_counts,
-                x='Month',
+                grouped_time,
+                x='Year_Month_Label',
                 y='Count',
                 markers=True,
                 color_discrete_sequence=[PRIMARY_COLOR]
             )
             fig6.update_traces(
-                line=dict(width=3),
-                marker=dict(size=8, color='#1e293b', line=dict(width=1, color='white')),
-                text=month_counts['Count'],
-                textposition="top center",
+                line=dict(width=3, shape='spline'),
+                marker=dict(size=7, color='#1e293b', line=dict(width=1.5, color='white')),
+                fill='tozeroy',
+                fillcolor='rgba(249, 76, 68, 0.08)',
                 mode="lines+markers+text",
+                text=grouped_time['Count'].apply(format_kpi_value),
+                textposition="top center",
                 textfont=dict(size=10, family='Segoe UI', color='#1e293b')
             )
             fig6.update_layout(
