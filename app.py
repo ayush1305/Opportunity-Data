@@ -74,8 +74,8 @@ def inject_custom_css():
             outline: none !important;
             color: #475569 !important;
             font-family: 'Segoe UI', sans-serif !important;
-            font-size: 1.3rem !important;  /* Increased size! */
-            font-weight: 700 !important;
+            font-size: 1.45rem !important;  /* Increased size again to 1.45rem! */
+            font-weight: 750 !important;
             padding: 8px 24px !important;
             border-radius: 24px !important;
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -193,7 +193,7 @@ ICONS = {
     """,
     "scholarships": """
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+            <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83(2022-2026) .18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
             <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
             <circle cx="12" cy="17" r="2" fill="currentColor"/>
         </svg>
@@ -342,17 +342,17 @@ def main():
     # ---------------------------------------------------------
     # HORIZONTAL PREMIUM WEBSITE NAVIGATION HEADER (Logo & Page title on the same row)
     # ---------------------------------------------------------
-    # Layout Ratios: Brand info (4.2), Spacer (0.6), Overview link (1.2), Insight link (1.2), Filters toggle (1.2)
-    col_brand, col_space, col_overview, col_insight, col_filter = st.columns([4.2, 0.6, 1.2, 1.2, 1.2])
+    # Layout Ratios: Brand info (4.0), Spacer (0.5), Overview link (1.3), Insight link (1.3), Filters toggle (1.3)
+    col_brand, col_space, col_overview, col_insight, col_filter = st.columns([4.0, 0.5, 1.3, 1.3, 1.3])
     
     with col_brand:
-        # Show embedded base64 logo with subtitle directly below it (no duplicate title text)
+        # Show embedded base64 logo with subtitle directly below it (larger logo max-height: 38px)
         if LOGO_B64:
             st.markdown(
                 f"""
-                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 42px;">
-                    <img src="data:image/png;base64,{LOGO_B64}" style="max-height: 25px; width: auto;" alt="Excelerate Logo">
-                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 800; margin-top: 3px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 55px;">
+                    <img src="data:image/png;base64,{LOGO_B64}" style="max-height: 38px; width: auto;" alt="Excelerate Logo">
+                    <span style="font-size: 0.68rem; color: #64748b; font-weight: 800; margin-top: 4px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -360,16 +360,16 @@ def main():
         else:
             st.markdown(
                 f"""
-                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 42px;">
-                    <h3 style="color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:1.1;">Excelerate</h3>
-                    <span style="font-size: 0.65rem; color: #64748b; font-weight: 800; margin-top: 3px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 55px;">
+                    <h3 style="color:{PRIMARY_COLOR}; margin:0; font-weight:800; line-height:1.1; font-size:1.8rem;">Excelerate</h3>
+                    <span style="font-size: 0.68rem; color: #64748b; font-weight: 800; margin-top: 4px; letter-spacing: 0.5px;">OPPORTUNITY CATALOG & STRATEGIC OPERATIONS</span>
                 </div>
                 """, 
                 unsafe_allow_html=True
             )
 
     with col_space:
-        st.markdown("<div style='height: 42px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 55px;'></div>", unsafe_allow_html=True)
 
     with col_overview:
         if st.button("Overview", key="nav_overview"):
