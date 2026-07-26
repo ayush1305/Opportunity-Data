@@ -74,7 +74,7 @@ def inject_custom_css():
             outline: none !important;
             color: #475569 !important;
             font-family: 'Segoe UI', sans-serif !important;
-            font-size: 1.15rem !important;
+            font-size: 1.3rem !important;  /* Increased size! */
             font-weight: 700 !important;
             padding: 8px 24px !important;
             border-radius: 24px !important;
