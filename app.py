@@ -790,34 +790,40 @@ def main():
                 st.plotly_chart(fig5, use_container_width=True, config={'displayModeBar': False})
                 
         with col_insight2:
-            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Monthly Opportunity Expiry Seasonality Trends (by Month & Year)</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='font-size:1.15rem; color:{PRIMARY_COLOR}; margin-bottom: 10px;'>Opportunity Expiry Timeline (Chronological Trend)</h3>", unsafe_allow_html=True)
             
-            # Prepare monthly grouped counts by Year
-            season_df = filtered_df.copy()
+            # Extract a chronological timeline based on Expiry Year and Month
+            timeline_df = filtered_df.copy()
             month_map = {
                 'January': 1, 'February': 2, 'March': 3, 'April': 4,
                 'May': 5, 'June': 6, 'July': 7, 'August': 8,
                 'September': 9, 'October': 10, 'November': 11, 'December': 12
             }
-            season_df['Month_Num'] = season_df['Month'].map(month_map)
+            timeline_df['Month_Num'] = timeline_df['Month'].map(month_map)
             
-            grouped_season = season_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
-            months_order = [
-                'January', 'February', 'March', 'April', 'May', 'June', 
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ]
-            grouped_season['Month'] = pd.Categorical(grouped_season['Month'], categories=months_order, ordered=True)
-            grouped_season = grouped_season.sort_values(['Month_Num', 'Year'])
-            grouped_season['Year'] = grouped_season['Year'].astype(str) # Convert to string for discrete color mapping
+            # Group by year and month
+            grouped_time = timeline_df.groupby(['Year', 'Month', 'Month_Num']).size().reset_index(name='Count')
             
-            # Grouped bar chart comparing month expiries side-by-side by year
-            fig6 = px.bar(
-                grouped_season,
-                x='Month',
+            # Create a proper date column for chronological sorting
+            grouped_time['Date'] = pd.to_datetime(
+                grouped_time['Year'].astype(str) + '-' + grouped_time['Month_Num'].astype(str) + '-01',
+                format='%Y-%m-%d'
+            )
+            grouped_time = grouped_time.sort_values('Date')
+            
+            # Plot chronological area time series chart
+            fig6 = px.area(
+                grouped_time,
+                x='Date',
                 y='Count',
-                color='Year',
-                barmode='group',
-                color_discrete_sequence=['#f94c44', '#f14159', '#e7306b', '#fca5a5', '#475569']
+                color_discrete_sequence=[PRIMARY_COLOR]
+            )
+            fig6.update_traces(
+                line=dict(width=3, shape='spline'),
+                marker=dict(size=6, color='#1e293b', line=dict(width=1.5, color='white')),
+                mode="lines+markers",
+                fill='tozeroy',
+                fillcolor='rgba(249, 76, 68, 0.08)'
             )
             fig6.update_layout(
                 plot_bgcolor='rgba(0,0,0,0)',
@@ -826,16 +832,16 @@ def main():
                 height=280,
                 xaxis_title="",
                 yaxis_title="",
-                xaxis=dict(showgrid=False, linecolor='#e2e8f0', tickfont=dict(size=11, family='Segoe UI')),
+                xaxis=dict(
+                    showgrid=False, 
+                    linecolor='#e2e8f0', 
+                    tickfont=dict(size=11, family='Segoe UI'),
+                    type='date',
+                    dtick="M3", # Tick every 3 months for readable density
+                    tickformat="%b %Y" # Format like "Nov 2023"
+                ),
                 yaxis=dict(showgrid=True, gridcolor='#f1f5f9', linecolor='rgba(0,0,0,0)'),
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=1.02,
-                    xanchor="right",
-                    x=1,
-                    font=dict(size=10, family='Segoe UI', color='#1e293b')
-                )
+                showlegend=False
             )
             st.plotly_chart(fig6, use_container_width=True, config={'displayModeBar': False})
 
