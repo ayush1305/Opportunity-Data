@@ -74,10 +74,10 @@ def inject_custom_css():
             outline: none !important;
             color: #475569 !important;
             font-family: 'Segoe UI', sans-serif !important;
-            font-size: 1.45rem !important;  /* Increased size again to 1.45rem! */
-            font-weight: 750 !important;
+            font-size: 1.75rem !important;  /* Increased size again to 1.75rem! */
+            font-weight: 800 !important;  /* Set weight to 800 (Extra Bold) */
             padding: 8px 24px !important;
-            border-radius: 24px !important;
+            border-radius: 28px !important; /* Slightly larger border radius for bigger pills */
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
             height: auto !important;
             width: 100% !important;
@@ -193,7 +193,7 @@ ICONS = {
     """,
     "scholarships": """
         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83(2022-2026) .18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+            <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
             <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
             <circle cx="12" cy="17" r="2" fill="currentColor"/>
         </svg>
